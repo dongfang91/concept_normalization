@@ -4,13 +4,12 @@ from gru import LSTMClassifier
 import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
-import torch_prepreocess as function
+import torch_preprocess as function
 import math
-use_plot = True
-use_save = True
-if use_save:
-    import pickle
 
+
+np.random.seed(123)
+torch.manual_seed(123)
 
 
 ## parameter setting

@@ -3,6 +3,7 @@ import numpy as np
 from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
 import nltk
+from gensim.summarization import bm25
 nltk.download('punkt')
 stemmer = SnowballStemmer("english")
 
@@ -71,7 +72,6 @@ def get_scores(tf_idf_tests,tf_idf_label,label_text_index,label_code_dict,y_test
     return score
 
 def get_bm_25_score(query_list, bm25_list, label_text_new_index, label_y_dict, y_test_text):
-    from gensim.summarization import bm25
 
     bm25Model = bm25.BM25(bm25_list)
     average_idf = sum(map(lambda k: float(bm25Model.idf[k]), bm25Model.idf.keys())) / len(bm25Model.idf.keys())
@@ -170,3 +170,4 @@ def term_matching_baseline(dataset):
     print("Average Test accuracy for %s: TF-IDF %s " %(dataset, scores_tf_idf_test/10.0))
     print("Average Test accuracy for %s: BM25 %s" %(dataset, scores_bm25_test/10.0))
 
+# term_matching_baseline("AskAPatient")
