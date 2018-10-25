@@ -69,6 +69,21 @@ def get_idx_from_sent(sent, word_idx_map, max_l):
         x.append(0)
     return x[:max_l]
 
+def get_idx_from_sent_character(sent, word_idx_map):
+    """
+    Transforms sentence into a list of indices. Post-Pad with zeroes.
+    """
+    x = []
+    # for i in range(pad):
+    #     x.append(word_idx_map[padding_char])
+    for word in sent:
+        word = word.lower()
+        if word in word_idx_map.keys():
+            x.append(word_idx_map[word])
+        else:
+            x.append(word_idx_map["UNK"])
+    return x
+
 def dataset_preprocess(texts,labels, vocab_dict,label_dict,max_length):
     text_x = []
     label_y = []
@@ -87,4 +102,21 @@ def dataset_preprocess(texts,labels, vocab_dict,label_dict,max_length):
         label_y.append(label_dict[labels[index]])
     return np.asanyarray(text_x),np.asanyarray(label_y),np.asarray(sent_length)
 
+def dataset_preprocess_character(texts,labels, vocab_dict,label_dict):
+    text_x = []
+    label_y = []
+    sent_length = []
+
+    for index, sent in enumerate(texts):
+        #word_list = word_tokenize(sent)
+        sent_length.append(len(sent))
+        text_x.append(get_idx_from_sent_character(sent,vocab_dict))
+        # if index <=2000:
+        #     label_y.append(0)
+        # elif 3000<=index<=7000:
+        #     label_y.append(1)
+        # else:
+        #     label_y.append(2)
+        label_y.append(label_dict[labels[index]])
+    return text_x,np.asanyarray(label_y),np.asarray(sent_length)
 
