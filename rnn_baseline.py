@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch_preprocess as function
 import math
+import read_files as read
 
 
 np.random.seed(123)
@@ -160,14 +161,21 @@ def rnn_baseline(dataset,train_model):
 
     print("Run RNN Baseline for %s: ..." %(dataset))
 
+    texts, label_texts, labels = function.load_data(
+        "data/" + dataset + "/" + dataset + ".fold-" + str(0) + ".train.txt",
+        "data/" + dataset + "/" + dataset + ".fold-" + str(0) + ".validation.txt",
+        "data/" + dataset + "/" + dataset + ".fold-" + str(0) + ".test.txt")
+
+    vocab_dict, label_dict = function.get_vocab(texts, label_texts, labels)
+    vocab_dict["UNK"] = len(vocab_dict) + 1
+    vocab_dict["PAD"] = 0
+
+
     for i in range(10):
         texts, label_texts, labels = function.load_data("data/"+dataset + "/"+dataset+".fold-"+ str(i) +".train.txt",
                            "data/"+dataset + "/"+dataset+".fold-"+ str(i) +".validation.txt",
                            "data/"+dataset + "/"+dataset+".fold-"+ str(i) +".test.txt")
 
-        vocab_dict, label_dict =function.get_vocab(texts,label_texts,labels)
-        vocab_dict["UNK"] = len(vocab_dict)+1
-        vocab_dict["PAD"] = 0
         max_length = 56
         train_x,train_y,train_sentence_len = function.dataset_preprocess(texts[0],labels[0], vocab_dict,label_dict,max_length)
         valid_x,valid_y , valid_sentence_len = function.dataset_preprocess(texts[1],labels[1], vocab_dict,label_dict,max_length)
@@ -180,7 +188,9 @@ def rnn_baseline(dataset,train_model):
         else:
             model = torch.load("data/model/model_" + dataset + "_folder_" + str(i) + ".pkl")
             dev_acc = eval(i, model, valid_x, valid_y, valid_sentence_len, mode="Dev")
+            print(dev_acc)
             test_acc = eval(i, model, test_x, test_y, test_sentence_len, mode = "Test")
+
         avg_test_acc += test_acc
         avg_dev_acc +=dev_acc
     print('Average Dev Acc for %s: %.3f'
@@ -188,8 +198,8 @@ def rnn_baseline(dataset,train_model):
     print('Average Testing Acc for %s: %.3f'
           % (dataset, avg_test_acc/10.0))
 
-import term_matching_baseline
-term_matching_baseline.term_matching_baseline("AskAPatient")
-term_matching_baseline.term_matching_baseline("TwADR-L")
+#import term_matching_baseline
+#term_matching_baseline.term_matching_baseline("AskAPatient")
+#term_matching_baseline.term_matching_baseline("TwADR-L")
 rnn_baseline("AskAPatient",train_model=False)
 rnn_baseline("TwADR-L",train_model=False)

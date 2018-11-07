@@ -37,9 +37,8 @@ class LSTMClassifier(nn.Module):
         return (h0, c0)
 
     def forward(self, sentence,lengths):
-        embeds = self.word_embeddings(sentence)
 
-        packed = torch.nn.utils.rnn.pack_padded_sequence(embeds, lengths,batch_first=True)
+        packed = torch.nn.utils.rnn.pack_padded_sequence(sentence, lengths,batch_first=True)
         lstm_out, self.hidden = self.lstm(packed, self.hidden)
         unpacked, unpacked_len = torch.nn.utils.rnn.pad_packed_sequence(lstm_out,batch_first=True)
         # get the outputs from the last *non-masked* timestep for each sentence

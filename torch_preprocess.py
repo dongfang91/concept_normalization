@@ -120,3 +120,20 @@ def dataset_preprocess_character(texts,labels, vocab_dict,label_dict):
         label_y.append(label_dict[labels[index]])
     return text_x,np.asanyarray(label_y),np.asarray(sent_length)
 
+def dataset_preprocess_character_pretrained(texts,labels, vocab_dict,label_dict):
+    text_x = []
+    label_y = []
+    sent_length = []
+
+    for index, sent in enumerate(texts):
+        #word_list = word_tokenize(sent)
+        sent_length.append(len(sent))
+        #text_x.append(get_idx_from_sent_character(sent,vocab_dict))
+        # if index <=2000:
+        #     label_y.append(0)
+        # elif 3000<=index<=7000:
+        #     label_y.append(1)
+        # else:
+        #     label_y.append(2)
+        label_y.append(label_dict[labels[index]])
+    return texts,np.asanyarray(label_y),np.asarray(sent_length)
