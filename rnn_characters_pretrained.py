@@ -13,6 +13,11 @@ torch.manual_seed(123)
 
 use_gpu = torch.cuda.is_available()
 
+def flip(x, dim):
+    indices = [slice(None)] * x.dim()
+    indices[dim] = torch.arange(x.size(dim) - 1, -1, -1,
+                                dtype=torch.long, device=x.device)
+    return x[tuple(indices)]
 
 def iterate_minibatches(inputs, targets, sentence_len, batchsize, shuffle=False):
     assert len(inputs) == len(targets)
@@ -64,6 +69,7 @@ def get_pretrained_input(input_batch):
     rnn_f = rnn_f.transpose(0, 1)
     rnn_b = lm_b.get_representation(get_padded_sentence(input_batch, is_forward_lm=False))
     rnn_b = rnn_b.transpose(0, 1)
+    rnn_b = flip(rnn_b,1)
     rnn = torch.cat((rnn_f,rnn_b),dim=2)
     return rnn
 
