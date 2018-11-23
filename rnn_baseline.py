@@ -1,10 +1,10 @@
 import numpy as np
 import torch
-from gru import LSTMClassifier
+from gru_entitiylibrary import LSTMClassifier
 import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
-import torch_preprocess as function
+import torch_preprocess_word as function
 import math
 import read_files as read
 

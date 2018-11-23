@@ -11,7 +11,7 @@ class LSTMClassifier(nn.Module):
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
         self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim//2, bidirectional=True)
         self.hidden2hidden1 = nn.Linear(hidden_dim, hidden_dim)
         self.relu1 = nn.ReLU()
         self.hidden2label = nn.Linear(hidden_dim, label_size)
@@ -29,11 +29,11 @@ class LSTMClassifier(nn.Module):
 
     def init_hidden(self):
         if torch.cuda.is_available():
-             h0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim)).cuda()
-             c0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim)).cuda()
+             h0 = Variable(torch.zeros(2, self.batch_size, self.hidden_dim//2)).cuda()
+             c0 = Variable(torch.zeros(2, self.batch_size, self.hidden_dim//2)).cuda()
         else:
-             h0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim))
-             c0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim))
+             h0 = Variable(torch.zeros(2, self.batch_size, self.hidden_dim//2))
+             c0 = Variable(torch.zeros(2, self.batch_size, self.hidden_dim//2))
         return (h0, c0)
 
     def forward(self, sentence,lengths):

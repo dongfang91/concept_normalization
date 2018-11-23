@@ -7,6 +7,7 @@ from torch.autograd import Variable
 import torch_preprocess as function
 import math
 from flair.models import LanguageModel
+import read_files as read
 
 np.random.seed(123)
 torch.manual_seed(123)
@@ -60,8 +61,8 @@ def get_padded_sentence(sentences,is_forward_lm):
     return sentences_padded
 
 def get_pretrained_input(input_batch):
-    lm_f = LanguageModel.load_language_model('/home/dongfang/.flair/embeddings/lm-news-english-forward-v0.2rc.pt')
-    lm_b = LanguageModel.load_language_model('/home/dongfang/.flair/embeddings/lm-news-english-backward-v0.2rc.pt')
+    lm_f = LanguageModel.load_language_model('data/config/lm-news-english-forward-v0.2rc.pt')
+    lm_b = LanguageModel.load_language_model('data/config/lm-news-english-backward-v0.2rc.pt')
     if use_gpu:
         lm_f.cuda()
         lm_b.cuda()
@@ -80,9 +81,9 @@ def get_pretrained_input(input_batch):
 def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x, valid_y, valid_sentence_len, dataset,
           folder):
     embedding_dim = 4096
-    hidden_dim = 256
-    epochs = 50
-    batch_size = 50
+    hidden_dim = 1024
+    epochs = 80
+    batch_size = 64
     learning_rate = 1.0
 
     model = LSTMClassifier(embedding_dim=embedding_dim, hidden_dim=hidden_dim,
@@ -101,6 +102,7 @@ def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x,
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
+        batch_count = 0
         for batch in iterate_minibatches(train_x, train_y, train_sentence_len, batchsize=batch_size, shuffle=True):
             input_batch, target_batch, seq_lens_batch = batch
             train_target_batch = torch.LongTensor(target_batch)
@@ -123,7 +125,10 @@ def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x,
 
             # calc training acc
             _, predicted = torch.max(output.data, 1)
-            total_acc += np.float((predicted == train_y_batch).sum().item())
+            batch_acc = np.float((predicted == train_y_batch).sum().item())
+            batch_count +=1
+            print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.detach().numpy()) + " " +str(batch_acc))
+            total_acc += batch_acc
             total += len(train_y_batch)
             total_loss += loss.item()
 
@@ -177,7 +182,7 @@ def eval(folder, model, test_x, test_y, test_sentence_len, mode):
     total_loss = 0.0
     total = 0.0
 
-    batch_size = 50
+    batch_size = 64
     for batch in iterate_minibatches(test_x, test_y, test_sentence_len, batchsize=batch_size, shuffle=False):
         input_batch, target_batch, seq_lens_batch = batch
         test_label = torch.LongTensor(target_batch)
@@ -214,19 +219,16 @@ def rnn_character(dataset, train_model):
     avg_dev_acc = 0.0
 
     print("Run RNN Baseline for %s: ..." % (dataset))
-    lm_f = LanguageModel.load_language_model('/home/dongfang/.flair/embeddings/lm-news-english-forward-v0.2rc.pt')
-    dictionary = lm_f.dictionary
-    vocab_dict = dict()
-    for i, j in dictionary.item2idx.items():
-        vocab_dict[i.decode('utf-8')] = j
+    vocab_dict = read.readfrom_json("data/config/char2int")
+    label_dict = read.readfrom_json("data/config/label_dict_"+dataset)
+    label_texts_dict = read.readfrom_json("data/config/label_texts_dict_"+dataset)
+
     for i in range(1):
         texts, label_texts, labels = function.load_data(
             "data/" + dataset + "/" + dataset + ".fold-" + str(i) + ".train.txt",
             "data/" + dataset + "/" + dataset + ".fold-" + str(i) + ".validation.txt",
             "data/" + dataset + "/" + dataset + ".fold-" + str(i) + ".test.txt")
 
-        _, label_dict = function.get_vocab(texts, label_texts, labels)
-        vocab_dict["UNK"] = len(vocab_dict) + 1
         train_x, train_y, train_sentence_len = function.dataset_preprocess_character_pretrained(texts[0], labels[0], vocab_dict,
                                                                                      label_dict)
         valid_x, valid_y, valid_sentence_len = function.dataset_preprocess_character_pretrained(texts[1], labels[1], vocab_dict,
@@ -236,11 +238,11 @@ def rnn_character(dataset, train_model):
         if train_model == True:
             train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x, valid_y, valid_sentence_len,
                   dataset, i)
-            model = torch.load("data/model1/model_" + dataset + "_folder_" + str(i) + ".pkl")
+            model = torch.load("data/model_pretrained/model_" + dataset + "_folder_" + str(i) + ".pkl")
             dev_acc = eval(i, model, valid_x, valid_y, valid_sentence_len, mode="Dev")
             test_acc = eval(i, model, test_x, test_y, test_sentence_len, mode="Test")
         else:
-            model = torch.load("data/model1/model_" + dataset + "_folder_" + str(i) + ".pkl")
+            model = torch.load("data/model_pretrained/model_" + dataset + "_folder_" + str(i) + ".pkl")
             dev_acc = eval(i, model, valid_x, valid_y, valid_sentence_len, mode="Dev")
             test_acc = eval(i, model, test_x, test_y, test_sentence_len, mode="Test")
         avg_test_acc += test_acc
@@ -251,9 +253,6 @@ def rnn_character(dataset, train_model):
           % (dataset, avg_test_acc / 10.0))
 
 
-import term_matching_baseline
-from flair.embeddings import CharLMEmbeddings
-from flair.data import Sentence
 
 rnn_character("AskAPatient", train_model=True)
-# rnn_baseline("TwADR-L",train_model=False)
+rnn_character("TwADR-L",train_model=True)
