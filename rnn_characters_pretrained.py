@@ -162,7 +162,7 @@ def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x,
             total += len(valid_y_batch)
             total_loss += loss.item()
         if (total_acc / total > val_acc):
-            torch.save(model, "data/model1/model_" + dataset + "_folder_" + str(folder) + ".pkl")
+            torch.save(model, "data/model_pretrained/model_" + dataset + "_folder_" + str(folder) + ".pkl")
             val_acc = total_acc / total
         valid_loss_.append(total_loss / total)
         valid_acc_.append(total_acc / total)
