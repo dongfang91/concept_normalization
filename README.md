@@ -11,9 +11,9 @@ $ git clone https://github.com/dongfang91/concept_normalization.git concept_norm
 * To build docker image, please run:
 ```
 $ cd concept_normalization 
-$ docker build -t xu-cs585-hw3 .
+$ docker build -t xu-cs585-hw4 .
 ```
 * To run the docker image, please run:
 ```
-$ docker run xu-cs585-hw3
+$ docker run xu-cs585-hw4
 ```
