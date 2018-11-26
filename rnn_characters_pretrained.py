@@ -82,7 +82,7 @@ def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x,
           folder):
     embedding_dim = 4096
     hidden_dim = 1024
-    epochs = 80
+    epochs = 160
     batch_size = 64
     learning_rate = 1.0
 
@@ -127,7 +127,7 @@ def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x,
             _, predicted = torch.max(output.data, 1)
             batch_acc = np.float((predicted == train_y_batch).sum().item())
             batch_count +=1
-            print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.detach().numpy()) + " " +str(batch_acc))
+            #print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.detach().numpy()) + " " +str(batch_acc))
             total_acc += batch_acc
             total += len(train_y_batch)
             total_loss += loss.item()
@@ -159,9 +159,9 @@ def train(vocab_dict, label_dict, train_x, train_y, train_sentence_len, valid_x,
             # calc testing acc
             _, predicted = torch.max(output.data, 1)
             total_acc += np.float((predicted == valid_y_batch).sum().item())
-            total += len(valid_y_batch)
+            total += len(target_batch)
             total_loss += loss.item()
-        if (total_acc / total > val_acc):
+        if ((total_acc / total) > val_acc):
             torch.save(model, "data/model_pretrained/model_" + dataset + "_folder_" + str(folder) + ".pkl")
             val_acc = total_acc / total
         valid_loss_.append(total_loss / total)
@@ -203,7 +203,7 @@ def eval(folder, model, test_x, test_y, test_sentence_len, mode):
         # calc testing acc
         _, predicted = torch.max(output.data, 1)
         total_acc += np.float((predicted == test_y_batch).sum().item())
-        total += len(test_y_batch)
+        total += len(target_batch)
         total_loss += loss.item()
     test_loss_.append(total_loss / total)
     test_acc_.append(total_acc / total)
@@ -214,7 +214,7 @@ def eval(folder, model, test_x, test_y, test_sentence_len, mode):
 
 
 # test()
-def rnn_character(dataset, train_model):
+def rnn_characters_pretrained(dataset, train_model):
     avg_test_acc = 0.0
     avg_dev_acc = 0.0
 
@@ -222,8 +222,9 @@ def rnn_character(dataset, train_model):
     vocab_dict = read.readfrom_json("data/config/char2int")
     label_dict = read.readfrom_json("data/config/label_dict_"+dataset)
     label_texts_dict = read.readfrom_json("data/config/label_texts_dict_"+dataset)
+    folder = 0
 
-    for i in range(1):
+    for i in range(folder,folder+1):
         texts, label_texts, labels = function.load_data(
             "data/" + dataset + "/" + dataset + ".fold-" + str(i) + ".train.txt",
             "data/" + dataset + "/" + dataset + ".fold-" + str(i) + ".validation.txt",
@@ -248,11 +249,10 @@ def rnn_character(dataset, train_model):
         avg_test_acc += test_acc
         avg_dev_acc += dev_acc
     print('Average Dev Acc for %s: %.3f'
-          % (dataset, avg_dev_acc / 10.0))
+          % (dataset, avg_dev_acc / 1.0))
     print('Average Testing Acc for %s: %.3f'
-          % (dataset, avg_test_acc / 10.0))
+          % (dataset, avg_test_acc / 1.0))
 
 
 
-rnn_character("AskAPatient", train_model=True)
-rnn_character("TwADR-L",train_model=True)
+

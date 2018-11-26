@@ -1,7 +1,7 @@
 # concept_normalization
 ## Requirements
 Python version: 3.6.2
-Python Package: nltk, pytorch, gensim, nltk, numpy, scikit-learn
+Python Package: pytorch, gensim, numpy, scikit-learn, flair
 
 ## Usages
 * To get the repository, please run:

@@ -60,9 +60,9 @@ def padding(inputs,seq_len):
 
 ### training procedure
 def train(vocab_dict, label_dict, train_x,train_y,label_x, label_seq,train_sentence_len,valid_x,valid_y , valid_sentence_len, dataset,folder):
-    embedding_dim =4096
-    hidden_dim = 1024
-    epochs = 80
+    embedding_dim = 512
+    hidden_dim = 256
+    epochs = 200
     batch_size = 64
     learning_rate = 1.0
 
@@ -118,8 +118,8 @@ def train(vocab_dict, label_dict, train_x,train_y,label_x, label_seq,train_sente
             # calc training acc
             _, predicted = torch.max(output.data, 1)
             batch_acc = np.float((predicted == train_y_batch).sum().item())
-            print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.detach().numpy()) + " " +str(batch_acc))
-            logger.info("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.detach().numpy()) + " " +str(batch_acc))
+            #print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.data.cpu().numpy()) + " " +str(batch_acc))
+            #logger.info("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.data.cpu().numpy()) + " " +str(batch_acc))
             total_acc += batch_acc
             total += len(train_y_batch)
             total_loss += loss.item()
@@ -158,10 +158,10 @@ def train(vocab_dict, label_dict, train_x,train_y,label_x, label_seq,train_sente
             val_acc = total_acc/total
         valid_loss_.append(total_loss / total)
         valid_acc_.append(total_acc / total)
-        print(
-            '[Epoch: %3d/%3d] Training Loss: %.3f, Validating Loss:  %.3f, Training Acc: %.3f, Validing Acc: %.3f'
-            % (epoch, epochs, train_loss_[epoch], valid_loss_[epoch],  train_acc_[epoch],
-               valid_acc_[epoch]))
+        #print(
+        #    '[Epoch: %3d/%3d] Training Loss: %.3f, Validating Loss:  %.3f, Training Acc: %.3f, Validing Acc: %.3f'
+        #    % (epoch, epochs, train_loss_[epoch], valid_loss_[epoch],  train_acc_[epoch],
+        #       valid_acc_[epoch]))
         logger.info('[Epoch: %3d/%3d] Training Loss: %.3f, Validating Loss:  %.3f, Training Acc: %.3f, Validing Acc: %.3f'
             % (epoch, epochs, train_loss_[epoch], valid_loss_[epoch],  train_acc_[epoch],
                valid_acc_[epoch]))
@@ -211,14 +211,14 @@ def eval(folder, model,test_x,test_y, test_sentence_len, label_x, label_seq,mode
     test_loss_.append(total_loss / total)
     test_acc_.append(total_acc / total)
 
-    print('%s Loss for folder %s: %.3f, %s Acc: %.3f'
-          % (mode ,str(folder),test_loss_[0], mode, test_acc_[0]))
+    #print('%s Loss for folder %s: %.3f, %s Acc: %.3f'
+    #      % (mode ,str(folder),test_loss_[0], mode, test_acc_[0]))
     logger.info('%s Loss for folder %s: %.3f, %s Acc: %.3f'
           % (mode ,str(folder),test_loss_[0], mode, test_acc_[0]))
     return test_acc_[0]
 
 #test()
-def rnn_character(dataset,train_model):
+def rnn_character_entity(dataset,train_model):
     avg_test_acc = 0.0
     avg_dev_acc = 0.0
 
@@ -243,8 +243,8 @@ def rnn_character(dataset,train_model):
     label_dict = read.readfrom_json("data/config/label_dict_"+dataset)
     label_texts_dict = read.readfrom_json("data/config/label_texts_dict_"+dataset)
     label_input, label_input_seq= function.label_preprocess_character(label_dict,label_texts_dict,vocab_dict)
-
-    for i in range(1):
+    folder = 0
+    for i in range(folder, folder+1):
         texts, label_texts, labels = function.load_data("data/"+dataset + "/"+dataset+".fold-"+ str(i) +".train.txt",
                            "data/"+dataset + "/"+dataset+".fold-"+ str(i) +".validation.txt",
                            "data/"+dataset + "/"+dataset+".fold-"+ str(i) +".test.txt")
@@ -266,15 +266,15 @@ def rnn_character(dataset,train_model):
             test_acc = eval(i, model, test_x, test_y, test_sentence_len, label_input, label_input_seq, mode = "Test")
         avg_test_acc += test_acc
         avg_dev_acc +=dev_acc
-    print('Average Dev Acc for %s: %.3f'% (dataset, avg_dev_acc/10.0))
-    print('Average Testing Acc for %s: %.3f'% (dataset, avg_test_acc/10.0))
-    logger.info('Average Dev Acc for %s: %.3f'% (dataset, avg_dev_acc/10.0))
-    logger.info('Average Testing Acc for %s: %.3f'% (dataset, avg_test_acc/10.0))
+    print('Average Dev Acc for %s: %.3f'% (dataset, avg_dev_acc/1.0))
+    print('Average Testing Acc for %s: %.3f'% (dataset, avg_test_acc/1.0))
+    logger.info('Average Dev Acc for %s: %.3f'% (dataset, avg_dev_acc/1.0))
+    logger.info('Average Testing Acc for %s: %.3f'% (dataset, avg_test_acc/1.0))
 # import term_matching_baseline
 # from flair.embeddings import CharLMEmbeddings
 # from flair.data import Sentence
 
 
 
-rnn_character("AskAPatient",train_model=True)
-rnn_character("TwADR-L",train_model=True)
+# rnn_character_entity("AskAPatient",train_model=True)
+# rnn_character_entity("TwADR-L",train_model=True)

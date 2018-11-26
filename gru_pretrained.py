@@ -12,8 +12,6 @@ class LSTMClassifier(nn.Module):
         self.batch_size = batch_size
         self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
         self.lstm = nn.LSTM(embedding_dim, hidden_dim//2, bidirectional=True)
-        self.hidden2hidden1 = nn.Linear(hidden_dim, hidden_dim)
-        self.relu1 = nn.ReLU()
         self.hidden2label = nn.Linear(hidden_dim, label_size)
         self.dropout = nn.Dropout(0.5)
 
@@ -44,7 +42,6 @@ class LSTMClassifier(nn.Module):
         # get the outputs from the last *non-masked* timestep for each sentence
         last_outputs = self.last_timestep(unpacked, unpacked_len)
         last_outputs = self.dropout(last_outputs)
-        hidden_1 = self.hidden2hidden1(last_outputs)
-        hidden_1 = self.relu1(hidden_1)
-        y = self.hidden2label(hidden_1)
+        #hidden_1 = self.relu1(last_outputs)
+        y = self.hidden2label(last_outputs)
         return y

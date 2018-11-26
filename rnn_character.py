@@ -39,7 +39,7 @@ def iterate_minibatches(inputs, targets, sentence_len,batchsize, shuffle=False):
 def train(vocab_dict, label_dict, train_x,train_y,train_sentence_len,valid_x,valid_y , valid_sentence_len, dataset,folder):
     embedding_dim =4096
     hidden_dim = 1024
-    epochs = 80
+    epochs = 100
     batch_size = 64
     learning_rate = 1.0
 	
@@ -86,7 +86,7 @@ def train(vocab_dict, label_dict, train_x,train_y,train_sentence_len,valid_x,val
             _, predicted = torch.max(output.data, 1)
             batch_acc = np.float((predicted == train_y_batch).sum().item())
             batch_count +=1
-            print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.detach().numpy()) + " " +str(batch_acc))
+            #print("Batch "+ str(batch_count) +" Loss & Acc: " + str(loss.data.cpu().numpy()) + " " +str(batch_acc))
             total_acc += batch_acc
             total += len(train_y_batch)
             total_loss += loss.item()
@@ -145,7 +145,7 @@ def eval(folder, model,test_x,test_y , test_sentence_len,mode):
     total_loss = 0.0
     total = 0.0
 
-    batch_size = 256
+    batch_size = 64
     for batch in iterate_minibatches(test_x, test_y,test_sentence_len, batchsize=batch_size, shuffle=False):
         input_batch, target_batch, seq_lens_batch= batch
         test_input = torch.LongTensor(input_batch)
@@ -171,6 +171,7 @@ def eval(folder, model,test_x,test_y , test_sentence_len,mode):
         total_acc += np.float((predicted == test_y_batch).sum().item())
         total += len(test_y_batch)
         total_loss += loss.item()
+
     test_loss_.append(total_loss / total)
     test_acc_.append(total_acc / total)
 
@@ -192,7 +193,8 @@ def rnn_character(dataset,train_model):
     vocab_dict = read.readfrom_json("data/config/char2int")
     label_dict = read.readfrom_json("data/config/label_dict_"+dataset)
     label_texts_dict = read.readfrom_json("data/config/label_texts_dict_"+dataset)
-    for i in range(10):
+    folder = 0
+    for i in range(folder, folder+1):
         texts, label_texts, labels = function.load_data("data/"+dataset + "/"+dataset+".fold-"+ str(i) +".train.txt",
                            "data/"+dataset + "/"+dataset+".fold-"+ str(i) +".validation.txt",
                            "data/"+dataset + "/"+dataset+".fold-"+ str(i) +".test.txt")
@@ -214,9 +216,9 @@ def rnn_character(dataset,train_model):
         avg_test_acc += test_acc
         avg_dev_acc +=dev_acc
     print('Average Dev Acc for %s: %.3f'
-          % (dataset, avg_dev_acc/10.0))
+          % (dataset, avg_dev_acc/float(1)))
     print('Average Testing Acc for %s: %.3f'
-          % (dataset, avg_test_acc/10.0))
+          % (dataset, avg_test_acc/float(1)))
 
 #import term_matching_baseline
 # from flair.embeddings import CharLMEmbeddings
@@ -224,5 +226,4 @@ def rnn_character(dataset,train_model):
 
 
 
-rnn_character("AskAPatient",train_model=True)
-rnn_character("TwADR-L",train_model=True)
+
