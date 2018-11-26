@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # create a file handler
-handler = logging.FileHandler('data/logging/rnn_entity.log')
+handler = logging.FileHandler('data/rnn_entity.log')
 handler.setLevel(logging.INFO)
 
 # create a logging format
